@@ -1,11 +1,54 @@
 const apiKey = 'da8bd41';
-async function fetchMovieDetails(movieName){
-  url = `https://www.omdbapi.com/?apikey=${apiKey}&t=${movieName}`
-  let dataFetched = await fetch(url);
-  const result = await dataFetched.json();
-  console.log(result);
-  updateHTML(result)
+async function fetchMovieDetails(movieName) {
+  try {
+    const url = `https://www.omdbapi.com/?apikey=${apiKey}&t=${movieName}`;
+    let dataFetched = await fetch(url);
+    
+    if (!dataFetched.ok) { 
+      throw new Error("Network response was not ok"); 
+    }
+
+    const result = await dataFetched.json();
+    
+    if (result.Response === "False") {
+      document.querySelector(".up").textContent = "❌ Movie not found!";
+      document.querySelector(".down").style.display = "none";
+      return;
+    }
+
+    // If success → update UI
+    document.querySelector(".up").innerHTML = `
+      <div class="left">
+        <div class="image">
+          <img class="movie-image" src="assets/movie-image-sample.png" alt="movie-image-not-found">
+        </div>
+      </div>
+      <div class="right">
+        <div class="name">Interstellar</div>
+        <div class="rating">
+          <span class="game-icons--round-star"></span>
+          <div class="rating-count">8.7</div>
+        </div>
+        <div class="details">
+          <div class="rated">PG-13</div>
+          <div class="year">2014</div>
+          <div class="runtime">2hr 47min</div>
+        </div>
+        <div class="genre">
+          <div>Adventure</div>
+          <div>Drama</div>
+          <div>Sci-Fi</div>
+        </div>
+      </div>
+    `;
+    updateHTML(result);
+    document.querySelector(".down").style.display = "block";
+
+  } catch (error) {
+    console.error("Error fetching movie:", error);
+  }
 }
+
 
 function updateHTML(movie) {
   document.querySelector('.movie-image').src = movie.Poster;
@@ -20,7 +63,6 @@ function updateHTML(movie) {
 
   let genreData = genresToArray(movie.Genre);
   let html = '';
-  
   genreData.forEach((type) => {
     html += `<div>${type}</div>`;
   });
@@ -57,3 +99,9 @@ function genresToArray(genresStr) {
   return genresStr.split(",").map(g => g.trim());
 }
 fetchMovieDetails();
+
+document.addEventListener('keydown',(e)=>{
+  if(e.key==='Enter'){
+    searchBtn.click();
+  }
+})
